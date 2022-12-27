@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from '@emotion/styled'
+import Form from './components/Form'
+import Display from './components/Display'
+import Spinner from './components/Spinner'
 import imgCrypto from './img/imagen-criptos.png'
 
 const Heading = styled.h1`
@@ -40,11 +43,38 @@ const Image = styled.img`
 
 function App() {
 
+  const [coin, setCoin] = useState({})
+  const [outcome, setOutcome] = useState({})
+  const [showSpinner, setShowSpinner] = useState(false)
+
+  useEffect( () => {
+    if(Object.keys(coin).length > 0){
+      const getPriceApi = async () => {
+        setShowSpinner(true)
+        setOutcome({})
+        const {symbol, cryptoCurrency} = coin
+        const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${cryptoCurrency}&tsyms=${symbol}`
+        const reply = await fetch(url)
+        const res = await reply.json()
+        setOutcome(res.DISPLAY[cryptoCurrency][symbol])
+        setShowSpinner(false)
+      }
+      getPriceApi()
+    }
+  }, [coin] )
+
   return (
     <Container>
       <Image src={imgCrypto}></Image>
       <div>
         <Heading>Trade Cryptocurrency Instantly</Heading>
+        <Form
+          setCoin = {setCoin}
+        >
+        </Form>
+        { showSpinner && <Spinner></Spinner> }
+        { outcome.PRICE && <Display outcome = {outcome}></Display> }
+        
       </div>
     </Container>
     
